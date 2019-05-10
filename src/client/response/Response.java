@@ -5,12 +5,16 @@
  */
 package client.response;
 
+import global.GlobalVariable;
 import client.ClientThread;
 import client.Header;
+import client.parameters.Parameter;
+import client.parameters.Parameters;
 import client.request.Request;
 import com.sun.xml.internal.ws.util.ByteArrayBuffer;
 import java.io.IOException;
 import java.util.Arrays;
+import org.json.simple.parser.ParseException;
 
 /**
  *
@@ -18,75 +22,90 @@ import java.util.Arrays;
  */
 public class Response {
 
-    // Request.HEARTBEAT
-    public static final String HEARTBEAT_ACT = "act";
-    // Request.REGISTER
-    public static final String REGISTER_ACT = "act";
-    // Request.TYPE
-    public static final String TYPE_SERVER = "server";
-    public static final String TYPE_CAR = "car";
-    public static final String TYPE_CONTROL = "control";
-    // NO_ANSWER
-    public static final String NO_ANSWER = "no answer";
     //
     private Header header;
-    private byte[] answer;
+    private Parameters requestParameters;
+    private Parameters responseParameters;
+    //
     private ClientThread clientThread;
 
-    public Response(Header header, byte request) {
-        this.header = header;
-        this.header.setType(Header.RESPONSE);
-        setAnswer(request);
+    public Response(Request request) {
+        this(request.getHeader(), request.getRequestParameters());
     }
 
-    public Response(Header header, byte request, ClientThread clientThread) {
+    public Response(Header header, Parameters requestParameters) {
         this.header = header;
         this.header.setType(Header.RESPONSE);
+        this.requestParameters = requestParameters;
+        this.responseParameters = new Parameters();
+        setResponseParameters();
+    }
+
+    public Response(Request request, ClientThread clientThread) {
+        this(request.getHeader(), request.getRequestParameters(), clientThread);
+    }
+
+    public Response(Header header, Parameters requestParameters, ClientThread clientThread) {
+        this.header = header;
+        this.header.setType(Header.RESPONSE);
+        this.requestParameters = requestParameters;
+        this.responseParameters = new Parameters();
         this.clientThread = clientThread;
-        setAnswer(request);
+        setResponseParameters();
     }
 
-    public Response(byte[] bytes) {
-        this.header = new Header(Header.RESPONSE, bytes);
-        this.answer = Arrays.copyOfRange(bytes, 11, bytes.length);
+    public Response(byte[] bytes) throws ParseException {
+        // header
+        byte[] header = Arrays.copyOfRange(bytes, 0, 11);
+        this.header = new Header(Header.REQUEST, header);
+        // responseParameters
+        byte[] parmeters = Arrays.copyOfRange(bytes, 11, bytes.length);
+        this.responseParameters = new Parameters(parmeters);
     }
 
-    private void setAnswer(byte request) {
-        switch (request) {
-            case Request.HEARTBEAT:
-                this.answer = Response.HEARTBEAT_ACT.getBytes();
+    public final void setResponseParameters() {
+        String action = requestParameters.getParameterValue(Parameter.ACTION);
+        switch (action) {
+            case Parameter.HEARTBEAT:
+                responseParameters.addParameter(Parameter.RESULT, Parameter.RESULT_1);
                 break;
-            case Request.REGISTER:
-                this.answer = Response.REGISTER_ACT.getBytes();
-                Request type = new Request(Request.TYPE);
-                clientThread.Request(type);
-                if (type.getAnswerString().equals(Response.TYPE_CAR)) {
-                    this.answer = Response.REGISTER_ACT.getBytes();
+            case Parameter.REGISTER:
+                String type = requestParameters.getParameterValue(Parameter.TYPE);
+                String username = requestParameters.getParameterValue(Parameter.USERNAME);
+                String password = requestParameters.getParameterValue(Parameter.PASSWORD);
+                if (type.equals(Parameter.TYPE_CAR)) {
+                    if (GlobalVariable.config.getCars().containsCar(username, password)) {
+                        responseParameters.addParameter(Parameter.RESULT, Parameter.RESULT_1);
+                    } else {
+                        responseParameters.addParameter(Parameter.RESULT, Parameter.RESULT_0);
+                        responseParameters.addParameter(Parameter.MESSAGE, Parameter.REGISTER_INVALID_USER_PASS);
+                    }
+                } else {
+                    responseParameters.addParameter(Parameter.RESULT, Parameter.RESULT_0);
+                    responseParameters.addParameter(Parameter.MESSAGE, Parameter.REGISTER_INVALID_TYPE);
                 }
                 break;
-            case Request.TYPE:
-                this.answer = Response.TYPE_CAR.getBytes();
-                break;
             default:
-                String answer_temp = Response.NO_ANSWER + ", For This Request Code " + (int) request;
-                System.err.println(answer_temp);
-                this.answer = answer_temp.getBytes();
+                String string = Parameter.NO_ANSWER + ", For This Request Action: " + action;
+                responseParameters.addParameter(Parameter.RESULT, Parameter.RESULT_0);
+                responseParameters.addParameter(Parameter.MESSAGE, string);
+                System.err.println(string);
                 break;
         }
+    }
+
+    public Parameters getResponseParameters() {
+        return responseParameters;
     }
 
     public Header getHeader() {
         return header;
     }
 
-    public byte[] getAnswer() {
-        return answer;
-    }
-
     public byte[] getBytes() throws IOException {
         ByteArrayBuffer byteArrayBuffer = new ByteArrayBuffer(100);
         byteArrayBuffer.write(header.getBytes());
-        byteArrayBuffer.write(getAnswer());
+        byteArrayBuffer.write(responseParameters.getJsonBytes());
         return byteArrayBuffer.toByteArray();
     }
 

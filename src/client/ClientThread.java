@@ -1,19 +1,21 @@
-package client;
-
-import client.request.Request;
-import client.response.Response;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.net.Socket;
-import java.util.Arrays;
-import java.util.Vector;
-import javax.swing.Timer;
-
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+package client;
+
+import client.request.Request;
+import client.response.Response;
+import client.response.ResponseThread;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.net.Socket;
+import java.util.Arrays;
+import java.util.Vector;
+import javax.swing.Timer;
+
 /**
  *
  * @author Armin
@@ -47,7 +49,7 @@ public class ClientThread extends Thread {
                     Request(heartBeat);
                     String ans = new String(heartBeat.getAnswer());
                     //System.out.println(ans);
-                    if (!ans.equals(Response.HEARTBEAT_YES)) {
+                    if (!ans.equals(Response.HEARTBEAT_ACT)) {
                         Stop();
                     }
                 } catch (Exception exception) {
@@ -66,15 +68,13 @@ public class ClientThread extends Thread {
                 while (!socketThread.getBytesDataInputStream().isEmpty()) {
 
                     byte[] data = socketThread.getBytesDataInputStream().remove(0);
-                    //System.out.println(Arrays.toString(data));
+                    System.out.println(Arrays.toString(data));
 
                     switch (data[0]) {
                         case Header.REQUEST:
                             Request request_temp = new Request(data);
-                            Response response = new Response(
-                                    request_temp.getHeader(), request_temp.getRequest()
-                            );
-                            socketThread.dataOutputStreamWrite(response.getBytes());
+                            ResponseThread responseThread = new ResponseThread(request_temp, this);
+                            responseThread.start();
                             break;
                         case Header.RESPONSE:
                             Response response_temp = new Response(data);
@@ -151,10 +151,14 @@ public class ClientThread extends Thread {
     public void Request(Request request) {
         try {
             requests.add(request);
-            socketThread.dataOutputStreamWrite(request.getBytes());
+            dataOutputStreamWrite(request.getBytes());
         } catch (Exception exception) {
             exception.printStackTrace();
         }
+    }
+
+    public void dataOutputStreamWrite(byte[] bytes) throws IOException {
+        socketThread.dataOutputStreamWrite(bytes);
     }
 
 }

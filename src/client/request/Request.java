@@ -17,6 +17,8 @@ public class Request {
 
     // 
     public static final byte HEARTBEAT = 0x01;
+    public static final byte REGISTER = 0x02;
+    public static final byte TYPE = 0x03;
     //
     private Header header;
     private byte request;
@@ -59,6 +61,10 @@ public class Request {
             exception.printStackTrace();
         }
         return answer;
+    }
+
+    public String getAnswerString() {
+        return new String(getAnswer());
     }
 
     public void setAnswer(byte[] answer) {

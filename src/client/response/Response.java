@@ -5,6 +5,7 @@
  */
 package client.response;
 
+import client.ClientThread;
 import client.Header;
 import client.request.Request;
 import com.sun.xml.internal.ws.util.ByteArrayBuffer;
@@ -17,16 +18,31 @@ import java.util.Arrays;
  */
 public class Response {
 
-    //
-    public static final String HEARTBEAT_YES = "YES";
-    public static final String NO_ANSWER = "NO ANSWER";
+    // Request.HEARTBEAT
+    public static final String HEARTBEAT_ACT = "act";
+    // Request.REGISTER
+    public static final String REGISTER_ACT = "act";
+    // Request.TYPE
+    public static final String TYPE_SERVER = "server";
+    public static final String TYPE_CAR = "car";
+    public static final String TYPE_CONTROL = "control";
+    // NO_ANSWER
+    public static final String NO_ANSWER = "no answer";
     //
     private Header header;
     private byte[] answer;
+    private ClientThread clientThread;
 
     public Response(Header header, byte request) {
         this.header = header;
         this.header.setType(Header.RESPONSE);
+        setAnswer(request);
+    }
+
+    public Response(Header header, byte request, ClientThread clientThread) {
+        this.header = header;
+        this.header.setType(Header.RESPONSE);
+        this.clientThread = clientThread;
         setAnswer(request);
     }
 
@@ -36,12 +52,26 @@ public class Response {
     }
 
     private void setAnswer(byte request) {
-        if (request == Request.HEARTBEAT) {
-            this.answer = Response.HEARTBEAT_YES.getBytes();
-        } else {
-            String answer = Response.NO_ANSWER + ", For This Request Code " + (int) request;
-            this.answer = answer.getBytes();
-            System.err.println(answer);
+        switch (request) {
+            case Request.HEARTBEAT:
+                this.answer = Response.HEARTBEAT_ACT.getBytes();
+                break;
+            case Request.REGISTER:
+                this.answer = Response.REGISTER_ACT.getBytes();
+                Request type = new Request(Request.TYPE);
+                clientThread.Request(type);
+                if (type.getAnswerString().equals(Response.TYPE_CAR)) {
+                    this.answer = Response.REGISTER_ACT.getBytes();
+                }
+                break;
+            case Request.TYPE:
+                this.answer = Response.TYPE_CAR.getBytes();
+                break;
+            default:
+                String answer_temp = Response.NO_ANSWER + ", For This Request Code " + (int) request;
+                System.err.println(answer_temp);
+                this.answer = answer_temp.getBytes();
+                break;
         }
     }
 

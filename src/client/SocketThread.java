@@ -9,6 +9,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.util.Arrays;
 import java.util.Vector;
@@ -20,6 +21,8 @@ import java.util.Vector;
 public class SocketThread extends Thread {
 
     //
+    private final InetAddress ServerInetAddress;
+    private final int ServerPort;
     private final int bytesSize;
     //
     private final Socket socket;
@@ -30,6 +33,26 @@ public class SocketThread extends Thread {
     //
     private boolean Running;
 
+    public SocketThread(String ServerIP, int ServerPort, String name) throws Exception {
+        this(ServerIP, ServerPort, 8 * 1024, name);
+    }
+
+    public SocketThread(String ServerIP, int ServerPort, int bytesSize, String name) throws Exception {
+        super(name + "->" + "SocketThread");
+        //
+        this.ServerInetAddress = InetAddress.getByName(ServerIP);
+        this.ServerPort = ServerPort;
+        this.bytesSize = bytesSize;
+        //
+        this.bytesDataInputStream = new Vector<>();
+        //
+        this.socket = new Socket(this.ServerInetAddress, this.ServerPort);
+        //
+        this.dataInputStream = new DataInputStream(this.socket.getInputStream());
+        this.dataOutputStream = new DataOutputStream(this.socket.getOutputStream());
+
+    }
+
     public SocketThread(Socket socket, String name) throws Exception {
         this(socket, 8 * 1024, name);
     }
@@ -37,6 +60,8 @@ public class SocketThread extends Thread {
     public SocketThread(Socket socket, int bytesSize, String name) throws Exception {
         super(name + "->" + "SocketThread");
         //
+        this.ServerInetAddress = socket.getInetAddress();
+        this.ServerPort = socket.getPort();
         this.bytesSize = bytesSize;
         //
         this.bytesDataInputStream = new Vector<>();
@@ -117,11 +142,6 @@ public class SocketThread extends Thread {
         dataOutputStream.write(bytes);
     }
 
-    /*
-    protected synchronized void dataOutputStreamWrite(ByteArrayBuffer byteArrayBuffer) throws IOException {
-        this.dataOutputStreamWrite(byteArrayBuffer.toByteArray());
-    }
-     */
     protected Vector<byte[]> getBytesDataInputStream() {
         return bytesDataInputStream;
     }

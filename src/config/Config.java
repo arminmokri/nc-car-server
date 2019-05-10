@@ -16,6 +16,7 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.configuration2.INIConfiguration;
+import org.apache.commons.configuration2.SubnodeConfiguration;
 
 /**
  *
@@ -25,7 +26,9 @@ public class Config {
 
     private Options Options;
     private File Config;
+    //
     private Server Server;
+    private Cars cars;
 
     public Config(String[] args) {
         this.Options = new Options();
@@ -76,10 +79,26 @@ public class Config {
         this.Server.setPort(iNIConfiguration.getSection("server").getInt("port"));
         this.Server.setHostAddress(iNIConfiguration.getSection("server").getString("host"));
 
+        // set cars
+        this.cars = new Cars();
+        for (Object section_obj : iNIConfiguration.getSections()) {
+            SubnodeConfiguration section = iNIConfiguration.getSection(section_obj.toString());
+            if (section.containsKey("type") && section.getString("type").equals("car")) {
+                Car car = new Car();
+                car.setUsername(section.getString("username"));
+                car.setPassword(section.getString("password"));
+                cars.addCar(car);
+            }
+        }
+
     }
 
     public Server getServer() {
         return Server;
+    }
+
+    public Cars getCars() {
+        return cars;
     }
 
 }

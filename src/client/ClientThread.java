@@ -5,6 +5,8 @@
  */
 package client;
 
+import client.parameters.Parameter;
+import client.parameters.Parameters;
 import client.request.Request;
 import client.response.Response;
 import client.response.ResponseThread;
@@ -32,6 +34,35 @@ public class ClientThread extends Thread {
     //
     private Timer HeartBeat;
 
+    public ClientThread(String ServerIP, int ServerPort, String name) throws Exception {
+        super(name + "->" + "ClientThread");
+        //
+        socketThread = new SocketThread(ServerIP, ServerPort, getName());
+        //
+        requests = new Vector<>();
+        responses = new Vector<>();
+        //
+        HeartBeat = new Timer(1000, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    Parameters parameters = new Parameters();
+                    parameters.addParameter(Parameter.ACTION, Parameter.HEARTBEAT);
+                    Request heartBeat = new Request(parameters);
+                    Request(heartBeat);
+                    String result = heartBeat.getResponseParameters().getParameterValue(Parameter.RESULT);
+                    //System.out.println(ans);
+                    if (!result.equals(Parameter.RESULT_1)) {
+                        Stop();
+                    }
+                } catch (Exception exception) {
+                    exception.printStackTrace();
+                    Stop();
+                }
+            }
+        });
+    }
+
     //
     public ClientThread(Socket socket, String name) throws Exception {
         super(name + "->" + "ClientThread");
@@ -45,11 +76,13 @@ public class ClientThread extends Thread {
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
-                    Request heartBeat = new Request(Request.HEARTBEAT);
+                    Parameters parameters = new Parameters();
+                    parameters.addParameter(Parameter.ACTION, Parameter.HEARTBEAT);
+                    Request heartBeat = new Request(parameters);
                     Request(heartBeat);
-                    String ans = new String(heartBeat.getAnswer());
+                    String result = heartBeat.getResponseParameters().getParameterValue(Parameter.RESULT);
                     //System.out.println(ans);
-                    if (!ans.equals(Response.HEARTBEAT_ACT)) {
+                    if (!result.equals(Parameter.RESULT_1)) {
                         Stop();
                     }
                 } catch (Exception exception) {
@@ -68,7 +101,7 @@ public class ClientThread extends Thread {
                 while (!socketThread.getBytesDataInputStream().isEmpty()) {
 
                     byte[] data = socketThread.getBytesDataInputStream().remove(0);
-                    System.out.println(Arrays.toString(data));
+                    //System.out.println(Arrays.toString(data));
 
                     switch (data[0]) {
                         case Header.REQUEST:
@@ -83,7 +116,7 @@ public class ClientThread extends Thread {
                                 if (response_temp.getHeader().getTicket().equals(
                                         request.getHeader().getTicket())) {
                                     requests.remove(request);
-                                    request.setAnswer(response_temp.getAnswer());
+                                    request.setResponseParameters(response_temp.getResponseParameters());
                                     break;
                                 }
                             }
@@ -132,11 +165,10 @@ public class ClientThread extends Thread {
             }
 
             try {
-                super.stop();
+                this.stop();
             } catch (Exception exception) {
                 exception.printStackTrace();
             }
-
         }
     }
 
@@ -160,5 +192,4 @@ public class ClientThread extends Thread {
     public void dataOutputStreamWrite(byte[] bytes) throws IOException {
         socketThread.dataOutputStreamWrite(bytes);
     }
-
 }

@@ -6,8 +6,11 @@
 package client.request;
 
 import client.Header;
+import client.parameters.Parameters;
 import com.sun.xml.internal.ws.util.ByteArrayBuffer;
 import java.io.IOException;
+import java.util.Arrays;
+import org.json.simple.parser.ParseException;
 
 /**
  *
@@ -15,14 +18,11 @@ import java.io.IOException;
  */
 public class Request {
 
-    // 
-    public static final byte HEARTBEAT = 0x01;
-    public static final byte REGISTER = 0x02;
-    public static final byte TYPE = 0x03;
     //
     private Header header;
-    private byte request;
-    private byte[] answer;
+    private Parameters requestParameters;
+    private Parameters responseParameters;
+    //
     private long ResponseTimeout;
 
     public Request() {
@@ -30,59 +30,53 @@ public class Request {
         this.ResponseTimeout = 5000;
     }
 
-    public Request(byte request) {
+    public Request(Parameters parameters) {
         this.header = new Header(Header.REQUEST);
-        this.request = request;
+        this.requestParameters = parameters;
         this.ResponseTimeout = 5000;
     }
 
-    public Request(byte request, int ResponseTimeoutSec) {
-        this.header = new Header(Header.REQUEST);
-        this.request = request;
-        this.ResponseTimeout = ResponseTimeoutSec * 1000;
-    }
-
-    public Request(byte[] bytes) {
-        this.header = new Header(Header.REQUEST, bytes);
-        this.request = bytes[11];
+    public Request(byte[] bytes) throws ParseException {
+        // header
+        byte[] header = Arrays.copyOfRange(bytes, 0, 11);
+        this.header = new Header(Header.REQUEST, header);
+        // requestParameters
+        byte[] parmeters = Arrays.copyOfRange(bytes, 11, bytes.length);
+        this.requestParameters = new Parameters(parmeters);
     }
 
     public long getResponseTimeout() {
         return ResponseTimeout;
     }
 
-    public byte[] getAnswer() {
+    public Parameters getResponseParameters() {
         try {
             long now = System.currentTimeMillis();
-            while (answer == null && (System.currentTimeMillis() <= now + ResponseTimeout)) {
+            while (responseParameters == null && (System.currentTimeMillis() <= now + ResponseTimeout)) {
                 Thread.sleep(25);
             }
         } catch (Exception exception) {
             exception.printStackTrace();
         }
-        return answer;
+        return responseParameters;
     }
 
-    public String getAnswerString() {
-        return new String(getAnswer());
+    public void setResponseParameters(Parameters responseParameters) {
+        this.responseParameters = responseParameters;
     }
 
-    public void setAnswer(byte[] answer) {
-        this.answer = answer;
+    public Parameters getRequestParameters() {
+        return requestParameters;
     }
 
     public Header getHeader() {
         return header;
     }
 
-    public byte getRequest() {
-        return request;
-    }
-
     public byte[] getBytes() throws IOException {
         ByteArrayBuffer byteArrayBuffer = new ByteArrayBuffer(12);
         byteArrayBuffer.write(header.getBytes());
-        byteArrayBuffer.write(request);
+        byteArrayBuffer.write(requestParameters.getJsonBytes());
         return byteArrayBuffer.toByteArray();
     }
 

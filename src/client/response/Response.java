@@ -64,31 +64,38 @@ public class Response {
     }
 
     public final void setResponseParameters() {
-        String action = requestParameters.getParameterValue(Parameter.ACTION);
+        String action = requestParameters.getValue(Parameter.ACTION);
         switch (action) {
             case Parameter.HEARTBEAT:
-                responseParameters.addParameter(Parameter.RESULT, Parameter.RESULT_1);
+                responseParameters.add(Parameter.RESULT, Parameter.RESULT_1);
                 break;
             case Parameter.REGISTER:
-                String type = requestParameters.getParameterValue(Parameter.TYPE);
-                String username = requestParameters.getParameterValue(Parameter.USERNAME);
-                String password = requestParameters.getParameterValue(Parameter.PASSWORD);
+                String type = requestParameters.getValue(Parameter.TYPE);
+                String username = requestParameters.getValue(Parameter.USERNAME);
+                String password = requestParameters.getValue(Parameter.PASSWORD);
                 if (type.equals(Parameter.TYPE_CAR)) {
-                    if (GlobalVariable.config.getCars().containsCar(username, password)) {
-                        responseParameters.addParameter(Parameter.RESULT, Parameter.RESULT_1);
+                    if (GlobalVariable.config.getCars().authication(username, password)) {
+                        responseParameters.add(Parameter.RESULT, Parameter.RESULT_1);
                     } else {
-                        responseParameters.addParameter(Parameter.RESULT, Parameter.RESULT_0);
-                        responseParameters.addParameter(Parameter.MESSAGE, Parameter.REGISTER_INVALID_USER_PASS);
+                        responseParameters.add(Parameter.RESULT, Parameter.RESULT_0);
+                        responseParameters.add(Parameter.MESSAGE, Parameter.REGISTER_INVALID_USER_PASS);
+                    }
+                } else if (type.equals(Parameter.TYPE_CONTROL)) {
+                    if (GlobalVariable.config.getCars().authication(username, password)) {
+                        responseParameters.add(Parameter.RESULT, Parameter.RESULT_1);
+                    } else {
+                        responseParameters.add(Parameter.RESULT, Parameter.RESULT_0);
+                        responseParameters.add(Parameter.MESSAGE, Parameter.REGISTER_INVALID_USER_PASS);
                     }
                 } else {
-                    responseParameters.addParameter(Parameter.RESULT, Parameter.RESULT_0);
-                    responseParameters.addParameter(Parameter.MESSAGE, Parameter.REGISTER_INVALID_TYPE);
+                    responseParameters.add(Parameter.RESULT, Parameter.RESULT_0);
+                    responseParameters.add(Parameter.MESSAGE, Parameter.REGISTER_INVALID_TYPE);
                 }
                 break;
             default:
                 String string = Parameter.NO_ANSWER + ", For This Request Action: " + action;
-                responseParameters.addParameter(Parameter.RESULT, Parameter.RESULT_0);
-                responseParameters.addParameter(Parameter.MESSAGE, string);
+                responseParameters.add(Parameter.RESULT, Parameter.RESULT_0);
+                responseParameters.add(Parameter.MESSAGE, string);
                 System.err.println(string);
                 break;
         }

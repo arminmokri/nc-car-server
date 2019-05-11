@@ -47,10 +47,10 @@ public class ClientThread extends Thread {
             public void actionPerformed(ActionEvent e) {
                 try {
                     Parameters parameters = new Parameters();
-                    parameters.addParameter(Parameter.ACTION, Parameter.HEARTBEAT);
+                    parameters.add(Parameter.ACTION, Parameter.HEARTBEAT);
                     Request heartBeat = new Request(parameters);
                     Request(heartBeat);
-                    String result = heartBeat.getResponseParameters().getParameterValue(Parameter.RESULT);
+                    String result = heartBeat.getResponseParameters().getValue(Parameter.RESULT);
                     //System.out.println(ans);
                     if (!result.equals(Parameter.RESULT_1)) {
                         Stop();
@@ -77,10 +77,10 @@ public class ClientThread extends Thread {
             public void actionPerformed(ActionEvent e) {
                 try {
                     Parameters parameters = new Parameters();
-                    parameters.addParameter(Parameter.ACTION, Parameter.HEARTBEAT);
+                    parameters.add(Parameter.ACTION, Parameter.HEARTBEAT);
                     Request heartBeat = new Request(parameters);
                     Request(heartBeat);
-                    String result = heartBeat.getResponseParameters().getParameterValue(Parameter.RESULT);
+                    String result = heartBeat.getResponseParameters().getValue(Parameter.RESULT);
                     //System.out.println(ans);
                     if (!result.equals(Parameter.RESULT_1)) {
                         Stop();

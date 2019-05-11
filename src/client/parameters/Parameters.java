@@ -15,67 +15,57 @@ import org.json.simple.parser.ParseException;
  *
  * @author armin
  */
-public class Parameters {
-    
-    private ArrayList<Parameter> parameters;
-    
+public class Parameters extends ArrayList<Parameter> {
+
     public Parameters() {
-        parameters = new ArrayList<>();
     }
-    
+
     public Parameters(byte[] jsonBytes) throws ParseException {
         this(new String(jsonBytes));
     }
-    
+
     public Parameters(String jsonString) throws ParseException {
-        parameters = new ArrayList<>();
         JSONParser parser = new JSONParser();
         JSONObject jSONObject = (JSONObject) parser.parse(jsonString);
         for (Object object : jSONObject.entrySet()) {
             Map.Entry map = (Map.Entry) object;
-            addParameter(map.getKey().toString(), map.getValue().toString());
+            add(map.getKey().toString(), map.getValue().toString());
         }
     }
-    
-    public final void addParameter(String key, String value) {
-        this.addParameter(new Parameter(key, value));
-        
+
+    public final void add(String key, String value) {
+        add(new Parameter(key, value));
     }
-    
-    public void addParameter(Parameter parameter) {
-        parameters.add(parameter);
-        
-    }
-    
-    public String getParameterValue(String key) {
-        Parameter parameter = this.getParameter(key);
+
+    public String getValue(String key) {
+        Parameter parameter = get(key);
         if (parameter != null) {
             return parameter.getValue();
         }
         return null;
     }
-    
-    public Parameter getParameter(String key) {
-        for (Parameter parameter : parameters) {
+
+    public Parameter get(String key) {
+        for (Parameter parameter : this) {
             if (parameter.getKey().equals(key)) {
                 return parameter;
             }
         }
         return null;
     }
-    
+
     public String getJsonString() {
         JSONObject jSONObject = new JSONObject();
-        for (Parameter parameter : parameters) {
+        for (Parameter parameter : this) {
             jSONObject.put(parameter.getKey(), parameter.getValue());
         }
         return jSONObject.toJSONString();
-        
+
     }
-    
+
     public byte[] getJsonBytes() {
         return getJsonString().getBytes();
-        
+
     }
-    
+
 }

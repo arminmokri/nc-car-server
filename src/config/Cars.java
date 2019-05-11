@@ -11,25 +11,14 @@ import java.util.ArrayList;
  *
  * @author armin
  */
-public class Cars {
-
-    private ArrayList<Car> cars;
+public class Cars extends ArrayList<Car> {
 
     public Cars() {
-        this.cars = new ArrayList<>();
     }
 
-    public void addCar(Car car) {
-        cars.add(car);
-    }
-
-    public boolean containsCar(String username, String password) {
+    public boolean authication(String username, String password) {
         Car car = new Car(username, password);
-        return containsCar(car);
-    }
-
-    public boolean containsCar(Car car) {
-        return cars.contains(car);
+        return contains(car);
     }
 
 }

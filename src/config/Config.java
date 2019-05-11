@@ -87,7 +87,7 @@ public class Config {
                 Car car = new Car();
                 car.setUsername(section.getString("username"));
                 car.setPassword(section.getString("password"));
-                cars.addCar(car);
+                cars.add(car);
             }
         }
 

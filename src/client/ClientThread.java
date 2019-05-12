@@ -10,6 +10,7 @@ import client.parameters.Parameters;
 import client.request.Request;
 import client.response.Response;
 import client.response.ResponseThread;
+import config.Car;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
@@ -33,6 +34,8 @@ public class ClientThread extends Thread {
     private boolean Running;
     //
     private Timer HeartBeat;
+    //
+    private Car car;
 
     public ClientThread(String ServerIP, int ServerPort, String name) throws Exception {
         super(name + "->" + "ClientThread");
@@ -153,6 +156,14 @@ public class ClientThread extends Thread {
             this.setRunning(false);
 
             try {
+                if (car != null) {
+                    car.unsetClient(this);
+                }
+            } catch (Exception exception) {
+                exception.printStackTrace();
+            }
+
+            try {
                 HeartBeat.stop();
             } catch (Exception exception) {
                 exception.printStackTrace();
@@ -192,4 +203,13 @@ public class ClientThread extends Thread {
     public void dataOutputStreamWrite(byte[] bytes) throws IOException {
         socketThread.dataOutputStreamWrite(bytes);
     }
+
+    public void setCar(Car car) {
+        this.car = car;
+    }
+
+    public Car getCar() {
+        return car;
+    }
+
 }

@@ -21,4 +21,13 @@ public class Cars extends ArrayList<Car> {
         return contains(car);
     }
 
+    public Car get(String username, String password) {
+        Car car = new Car(username, password);
+        int index = indexOf(car);
+        if (index >= 0) {
+            return get(index);
+        } else {
+            return null;
+        }
+    }
 }

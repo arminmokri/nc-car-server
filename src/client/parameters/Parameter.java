@@ -19,6 +19,7 @@ public class Parameter {
     public static final String REGISTER = "register";
     public static final String REGISTER_INVALID_TYPE = "invalid type";
     public static final String REGISTER_INVALID_USER_PASS = "invalid username or password";
+    public static final String REGISTER_ALREADY = "already register";
     // TYPE
     public static final String TYPE = "type";
     public static final String TYPE_SERVER = "server";
@@ -27,6 +28,10 @@ public class Parameter {
     // AUTHENTICATION
     public static final String USERNAME = "username";
     public static final String PASSWORD = "password";
+    // PROXY
+    public static final String PROXY = "proxy";
+    public static final String OPPOSITE_SIDE_PARAMETERS = "opposite_side_parameters";
+    public static final String OPPOSITE_SIDE_NOT_AVAILABLE = "opposite side not available";
     // RESULT
     public static final String RESULT = "result";
     public static final String RESULT_0 = "0";
@@ -35,6 +40,8 @@ public class Parameter {
     public static final String MESSAGE = "message";
     // NO_ANSWER
     public static final String NO_ANSWER = "no answer";
+    //
+    public static final String ERROR = "error";
     //
     private String key;
     private String value;

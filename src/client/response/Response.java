@@ -12,6 +12,7 @@ import client.parameters.Parameter;
 import client.parameters.Parameters;
 import client.request.Request;
 import com.sun.xml.internal.ws.util.ByteArrayBuffer;
+import config.Car;
 import java.io.IOException;
 import java.util.Arrays;
 import org.json.simple.parser.ParseException;
@@ -64,40 +65,79 @@ public class Response {
     }
 
     public final void setResponseParameters() {
-        String action = requestParameters.getValue(Parameter.ACTION);
-        switch (action) {
-            case Parameter.HEARTBEAT:
-                responseParameters.add(Parameter.RESULT, Parameter.RESULT_1);
-                break;
-            case Parameter.REGISTER:
-                String type = requestParameters.getValue(Parameter.TYPE);
-                String username = requestParameters.getValue(Parameter.USERNAME);
-                String password = requestParameters.getValue(Parameter.PASSWORD);
-                if (type.equals(Parameter.TYPE_CAR)) {
-                    if (GlobalVariable.config.getCars().authication(username, password)) {
-                        responseParameters.add(Parameter.RESULT, Parameter.RESULT_1);
-                    } else {
-                        responseParameters.add(Parameter.RESULT, Parameter.RESULT_0);
-                        responseParameters.add(Parameter.MESSAGE, Parameter.REGISTER_INVALID_USER_PASS);
-                    }
-                } else if (type.equals(Parameter.TYPE_CONTROL)) {
-                    if (GlobalVariable.config.getCars().authication(username, password)) {
-                        responseParameters.add(Parameter.RESULT, Parameter.RESULT_1);
-                    } else {
-                        responseParameters.add(Parameter.RESULT, Parameter.RESULT_0);
-                        responseParameters.add(Parameter.MESSAGE, Parameter.REGISTER_INVALID_USER_PASS);
-                    }
-                } else {
-                    responseParameters.add(Parameter.RESULT, Parameter.RESULT_0);
-                    responseParameters.add(Parameter.MESSAGE, Parameter.REGISTER_INVALID_TYPE);
+        try {
+            String action = requestParameters.getValue(Parameter.ACTION);
+            switch (action) {
+                case Parameter.HEARTBEAT: {
+                    responseParameters.add(Parameter.RESULT, Parameter.RESULT_1);
+                    break;
                 }
-                break;
-            default:
-                String string = Parameter.NO_ANSWER + ", For This Request Action: " + action;
-                responseParameters.add(Parameter.RESULT, Parameter.RESULT_0);
-                responseParameters.add(Parameter.MESSAGE, string);
-                System.err.println(string);
-                break;
+                case Parameter.REGISTER: {
+                    String type = requestParameters.getValue(Parameter.TYPE);
+                    String username = requestParameters.getValue(Parameter.USERNAME);
+                    String password = requestParameters.getValue(Parameter.PASSWORD);
+                    Car car = GlobalVariable.config.getCars().get(username, password);
+                    if (type.equals(Parameter.TYPE_CAR)) {
+                        if (car != null) {
+                            if (car.getClientCar() == null) {
+                                car.setClientCar(clientThread);
+                                clientThread.setCar(car);
+                                responseParameters.add(Parameter.RESULT, Parameter.RESULT_1);
+                            } else {
+                                responseParameters.add(Parameter.RESULT, Parameter.RESULT_0);
+                                responseParameters.add(Parameter.MESSAGE, Parameter.REGISTER_ALREADY);
+                            }
+                        } else {
+                            responseParameters.add(Parameter.RESULT, Parameter.RESULT_0);
+                            responseParameters.add(Parameter.MESSAGE, Parameter.REGISTER_INVALID_USER_PASS);
+                        }
+                    } else if (type.equals(Parameter.TYPE_CONTROL)) {
+                        if (car != null) {
+                            if (car.getClientControl() == null) {
+                                car.setClientControl(clientThread);
+                                clientThread.setCar(car);
+                                responseParameters.add(Parameter.RESULT, Parameter.RESULT_1);
+                            } else {
+                                responseParameters.add(Parameter.RESULT, Parameter.RESULT_0);
+                                responseParameters.add(Parameter.MESSAGE, Parameter.REGISTER_ALREADY);
+                            }
+                        } else {
+                            responseParameters.add(Parameter.RESULT, Parameter.RESULT_0);
+                            responseParameters.add(Parameter.MESSAGE, Parameter.REGISTER_INVALID_USER_PASS);
+                        }
+                    } else {
+                        responseParameters.add(Parameter.RESULT, Parameter.RESULT_0);
+                        responseParameters.add(Parameter.MESSAGE, Parameter.REGISTER_INVALID_TYPE);
+                    }
+                    break;
+                }
+                case Parameter.PROXY: {
+                    ClientThread clientThread_opposite_side = clientThread.getCar().getOppositeSideClient(clientThread);
+                    if (clientThread_opposite_side != null) {
+                        String opposite_side_parameters_string = requestParameters.getValue(Parameter.OPPOSITE_SIDE_PARAMETERS);
+                        Parameters opposite_side_parameters = new Parameters(opposite_side_parameters_string);
+                        Request opposite_side_request = new Request(opposite_side_parameters);
+                        clientThread_opposite_side.Request(opposite_side_request);
+                        responseParameters = opposite_side_request.getResponseParameters();
+                    } else {
+                        responseParameters.add(Parameter.RESULT, Parameter.RESULT_0);
+                        responseParameters.add(Parameter.MESSAGE, Parameter.OPPOSITE_SIDE_NOT_AVAILABLE);
+                    }
+                    break;
+                }
+                default: {
+                    String string = Parameter.NO_ANSWER + ", For This Request Action: " + action;
+                    responseParameters.add(Parameter.RESULT, Parameter.RESULT_0);
+                    responseParameters.add(Parameter.MESSAGE, string);
+                    System.err.println(string);
+                    break;
+                }
+            }
+        } catch (Exception exception) {
+            String string = Parameter.ERROR + ", " + exception.getMessage();
+            responseParameters.add(Parameter.RESULT, Parameter.RESULT_0);
+            responseParameters.add(Parameter.MESSAGE, string);
+            System.err.println(string);
         }
     }
 

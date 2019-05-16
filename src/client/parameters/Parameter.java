@@ -28,6 +28,13 @@ public class Parameter {
     // AUTHENTICATION
     public static final String USERNAME = "username";
     public static final String PASSWORD = "password";
+    // KEY
+    public static final String KEY = "key";
+    public static final String KEY_CODE = "code";
+    public static final String KEY_MODE = "mode";
+    public static final String KEY_HEARTBEAT_INTERVAL = "heartbeat_interval";
+    public static final String KEY_HEARTBEAT_WAIT_TIME = "heartbeat_wait_time";
+    public static final String KEY_EVENT = "event";
     // PROXY
     public static final String PROXY = "proxy";
     public static final String OPPOSITE_SIDE_PARAMETERS = "opposite_side_parameters";

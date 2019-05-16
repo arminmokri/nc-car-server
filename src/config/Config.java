@@ -77,8 +77,8 @@ public class Config {
         iNIConfiguration.read(new FileReader(this.Config));
 
         // set genral
-        this.simulationMode = iNIConfiguration.getSection("genral").getBoolean("simulation_mode");
-        this.debugMode = iNIConfiguration.getSection("genral").getBoolean("debug_mode");
+        this.simulationMode = iNIConfiguration.getSection("general").getBoolean("simulation_mode");
+        this.debugMode = iNIConfiguration.getSection("general").getBoolean("debug_mode");
 
         // set server
         this.Server = new Server();

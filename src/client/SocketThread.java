@@ -5,6 +5,8 @@
  */
 package client;
 
+import com.google.common.primitives.Bytes;
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
@@ -20,6 +22,9 @@ import java.util.Vector;
  */
 public class SocketThread extends Thread {
 
+    // packet header, footer
+    private final byte[] packetHeader = {(byte) 0x00, (byte) 0x00, (byte) 0x00};
+    private final byte[] packetFooter = {(byte) 0xFF, (byte) 0xFF, (byte) 0xFF};
     //
     private final InetAddress ServerInetAddress;
     private final int ServerPort;
@@ -80,7 +85,24 @@ public class SocketThread extends Thread {
                 int count;
                 byte[] bytes = new byte[bytesSize];
                 if ((count = dataInputStream.read(bytes)) > 0) {
-                    bytesDataInputStream.add(Arrays.copyOfRange(bytes, 0, count));
+                    byte[] remaining = Arrays.copyOfRange(bytes, 0, count);
+                    while (remaining.length > 0) {
+                        //
+                        int index_header = Bytes.indexOf(remaining, packetHeader);
+                        int index_footer = Bytes.indexOf(remaining, packetFooter);
+                        byte[] packet = Arrays.copyOfRange(
+                                remaining,
+                                index_header + packetHeader.length,
+                                index_footer
+                        );
+                        bytesDataInputStream.add(packet);
+                        // get remaining of bytes
+                        remaining = Arrays.copyOfRange(
+                                remaining,
+                                index_footer + packetFooter.length,
+                                remaining.length
+                        );
+                    }
                 }
 
             } catch (EOFException exception) {
@@ -139,7 +161,11 @@ public class SocketThread extends Thread {
     }
 
     protected synchronized void dataOutputStreamWrite(byte[] bytes) throws IOException {
-        dataOutputStream.write(bytes);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(100);
+        byteArrayOutputStream.write(packetHeader);
+        byteArrayOutputStream.write(bytes);
+        byteArrayOutputStream.write(packetFooter);
+        dataOutputStream.write(byteArrayOutputStream.toByteArray());
     }
 
     protected Vector<byte[]> getBytesDataInputStream() {

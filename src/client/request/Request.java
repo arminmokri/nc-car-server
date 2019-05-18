@@ -74,7 +74,7 @@ public class Request {
     }
 
     public byte[] getBytes() throws IOException {
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(12);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(100);
         byteArrayOutputStream.write(header.getBytes());
         byteArrayOutputStream.write(requestParameters.getJsonBytes());
         return byteArrayOutputStream.toByteArray();

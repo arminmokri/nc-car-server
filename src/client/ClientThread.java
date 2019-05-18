@@ -109,7 +109,7 @@ public class ClientThread extends Thread {
                     switch (data[0]) {
                         case Header.REQUEST:
                             Request request_temp = new Request(data);
-                            ResponseThread responseThread = new ResponseThread(request_temp, this);
+                            ResponseThread responseThread = new ResponseThread(request_temp, this, getName());
                             responseThread.start();
                             break;
                         case Header.RESPONSE:

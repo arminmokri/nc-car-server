@@ -18,7 +18,9 @@ public class ResponseThread extends Thread {
     private Request request;
     private ClientThread clientThread;
 
-    public ResponseThread(Request request, ClientThread clientThread) {
+    public ResponseThread(Request request, ClientThread clientThread, String name) {
+        super(name + "->" + "ResponseThread");
+        //
         this.request = request;
         this.clientThread = clientThread;
     }

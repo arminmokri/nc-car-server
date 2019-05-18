@@ -7,7 +7,7 @@ package client.request;
 
 import client.Header;
 import client.parameters.Parameters;
-import com.sun.xml.internal.ws.util.ByteArrayBuffer;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import org.json.simple.parser.ParseException;
@@ -74,10 +74,10 @@ public class Request {
     }
 
     public byte[] getBytes() throws IOException {
-        ByteArrayBuffer byteArrayBuffer = new ByteArrayBuffer(12);
-        byteArrayBuffer.write(header.getBytes());
-        byteArrayBuffer.write(requestParameters.getJsonBytes());
-        return byteArrayBuffer.toByteArray();
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(12);
+        byteArrayOutputStream.write(header.getBytes());
+        byteArrayOutputStream.write(requestParameters.getJsonBytes());
+        return byteArrayOutputStream.toByteArray();
     }
 
 }

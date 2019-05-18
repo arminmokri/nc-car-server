@@ -11,7 +11,7 @@ import client.Header;
 import client.parameters.Parameter;
 import client.parameters.Parameters;
 import client.request.Request;
-import com.sun.xml.internal.ws.util.ByteArrayBuffer;
+import java.io.ByteArrayOutputStream;
 import config.Car;
 import java.io.IOException;
 import java.util.Arrays;
@@ -150,10 +150,10 @@ public class Response {
     }
 
     public byte[] getBytes() throws IOException {
-        ByteArrayBuffer byteArrayBuffer = new ByteArrayBuffer(100);
-        byteArrayBuffer.write(header.getBytes());
-        byteArrayBuffer.write(responseParameters.getJsonBytes());
-        return byteArrayBuffer.toByteArray();
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(100);
+        byteArrayOutputStream.write(header.getBytes());
+        byteArrayOutputStream.write(responseParameters.getJsonBytes());
+        return byteArrayOutputStream.toByteArray();
     }
 
 }

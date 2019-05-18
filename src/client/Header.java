@@ -5,7 +5,7 @@
  */
 package client;
 
-import com.sun.xml.internal.ws.util.ByteArrayBuffer;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 
@@ -46,9 +46,9 @@ public class Header {
     }
 
     public byte[] getBytes() throws IOException {
-        ByteArrayBuffer byteArrayBuffer = new ByteArrayBuffer(11);
-        byteArrayBuffer.write(type);
-        byteArrayBuffer.write(ticket.getValue());
-        return byteArrayBuffer.toByteArray();
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(11);
+        byteArrayOutputStream.write(type);
+        byteArrayOutputStream.write(ticket.getValue());
+        return byteArrayOutputStream.toByteArray();
     }
 }

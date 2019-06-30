@@ -23,7 +23,7 @@ public class Main {
         Config config = new Config(args);
         GlobalVariable.config = config;
         try {
-            ServerThread serverThread = new ServerThread(config.getServer().getPort(), "Main");
+            ServerThread serverThread = new ServerThread(config.getServer().getSignallingPort(), "Main");
             serverThread.start();
         } catch (Exception exception) {
             exception.printStackTrace();

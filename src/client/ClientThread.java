@@ -5,6 +5,8 @@
  */
 package client;
 
+import client.transfer.TransferProtocol;
+import client.transfer.tcp.TcpThread;
 import client.parameters.Parameter;
 import client.parameters.Parameters;
 import client.request.Request;
@@ -26,10 +28,11 @@ import javax.swing.Timer;
 public class ClientThread extends Thread {
 
     //
-    private SocketThread socketThread;
-    //
+    private Vector<DataInput> dataInputs;
     private Vector<Request> requests;
     private Vector<Response> responses;
+    //
+    private TcpThread tcpThread;
     //
     private boolean Running;
     //
@@ -40,10 +43,11 @@ public class ClientThread extends Thread {
     public ClientThread(String ServerIP, int ServerPort, String name) throws Exception {
         super(name + "->" + "ClientThread");
         //
-        socketThread = new SocketThread(ServerIP, ServerPort, getName());
-        //
+        dataInputs = new Vector<>();
         requests = new Vector<>();
         responses = new Vector<>();
+        //
+        tcpThread = new TcpThread(ServerIP, ServerPort, dataInputs, getName());
         //
         HeartBeat = new Timer(1000, new ActionListener() {
             @Override
@@ -51,7 +55,7 @@ public class ClientThread extends Thread {
                 try {
                     Parameters parameters = new Parameters();
                     parameters.add(Parameter.ACTION, Parameter.HEARTBEAT);
-                    Request heartBeat = new Request(parameters);
+                    Request heartBeat = new Request(TransferProtocol.TCP, parameters);
                     Request(heartBeat);
                     String result = heartBeat.getResponseParameters().getValue(Parameter.RESULT);
                     //System.out.println(ans);
@@ -70,10 +74,11 @@ public class ClientThread extends Thread {
     public ClientThread(Socket socket, String name) throws Exception {
         super(name + "->" + "ClientThread");
         //
-        socketThread = new SocketThread(socket, getName());
-        //
+        dataInputs = new Vector<>();
         requests = new Vector<>();
         responses = new Vector<>();
+        //
+        tcpThread = new TcpThread(socket, dataInputs, getName());
         //
         HeartBeat = new Timer(1000, new ActionListener() {
             @Override
@@ -81,7 +86,7 @@ public class ClientThread extends Thread {
                 try {
                     Parameters parameters = new Parameters();
                     parameters.add(Parameter.ACTION, Parameter.HEARTBEAT);
-                    Request heartBeat = new Request(parameters);
+                    Request heartBeat = new Request(TransferProtocol.TCP, parameters);
                     Request(heartBeat);
                     String result = heartBeat.getResponseParameters().getValue(Parameter.RESULT);
                     //System.out.println(ans);
@@ -101,19 +106,19 @@ public class ClientThread extends Thread {
 
         while (this.isRunning()) {
             try {
-                while (!socketThread.getBytesDataInputStream().isEmpty()) {
+                while (!dataInputs.isEmpty()) {
 
-                    byte[] data = socketThread.getBytesDataInputStream().remove(0);
-                    //System.out.println(Arrays.toString(data));
+                    DataInput dataInput = dataInputs.remove(0);
+                    //System.out.println(Arrays.toString(dataInput.getBytes()));
 
-                    switch (data[0]) {
+                    switch (dataInput.getBytes()[0]) {
                         case Header.REQUEST:
-                            Request request_temp = new Request(data);
+                            Request request_temp = new Request(dataInput.getTransferProtocol(), dataInput.getBytes());
                             ResponseThread responseThread = new ResponseThread(request_temp, this, getName());
                             responseThread.start();
                             break;
                         case Header.RESPONSE:
-                            Response response_temp = new Response(data);
+                            Response response_temp = new Response(dataInput.getBytes());
                             for (int i = 0; i < requests.size(); i++) {
                                 Request request = requests.get(i);
                                 if (response_temp.getHeader().getTicket().equals(
@@ -125,7 +130,7 @@ public class ClientThread extends Thread {
                             }
                             break;
                         default:
-                            data = null;
+                            dataInput = null;
                             break;
                     }
 
@@ -145,7 +150,7 @@ public class ClientThread extends Thread {
             //
             super.start();
             //
-            socketThread.start();
+            tcpThread.start();
             //
             HeartBeat.start();
         }
@@ -170,7 +175,7 @@ public class ClientThread extends Thread {
             }
 
             try {
-                socketThread.Stop();
+                tcpThread.Stop();
             } catch (Exception exception) {
                 exception.printStackTrace();
             }
@@ -193,15 +198,20 @@ public class ClientThread extends Thread {
 
     public void Request(Request request) {
         try {
-            requests.add(request);
-            dataOutputStreamWrite(request.getBytes());
+            dataOutputWrite(request.getTransferProtocol(), request.getBytes());
         } catch (Exception exception) {
             exception.printStackTrace();
         }
     }
 
-    public void dataOutputStreamWrite(byte[] bytes) throws IOException {
-        socketThread.dataOutputStreamWrite(bytes);
+    public void dataOutputWrite(TransferProtocol transferProtocol, byte[] bytes) throws IOException, Exception {
+        if (transferProtocol.equals(TransferProtocol.TCP)) {
+            tcpThread.dataOutputStreamWrite(bytes);
+        } else if (transferProtocol.equals(TransferProtocol.UDP)) {
+            throw new Exception("Not implemented yet.");
+        } else {
+            throw new Exception("Unknown TransferProtocol.");
+        }
     }
 
     public void setCar(Car car) {

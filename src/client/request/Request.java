@@ -6,6 +6,7 @@
 package client.request;
 
 import client.Header;
+import client.transfer.TransferProtocol;
 import client.parameters.Parameters;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -19,24 +20,23 @@ import org.json.simple.parser.ParseException;
 public class Request {
 
     //
+    private TransferProtocol transferProtocol;
     private Header header;
     private Parameters requestParameters;
     private Parameters responseParameters;
     //
     private long ResponseTimeout;
 
-    public Request() {
-        this.header = new Header(Header.REQUEST);
-        this.ResponseTimeout = 5000;
-    }
-
-    public Request(Parameters parameters) {
+    public Request(TransferProtocol transferProtocol, Parameters parameters) {
+        this.transferProtocol = transferProtocol;
         this.header = new Header(Header.REQUEST);
         this.requestParameters = parameters;
         this.ResponseTimeout = 5000;
     }
 
-    public Request(byte[] bytes) throws ParseException {
+    public Request(TransferProtocol transferProtocol, byte[] bytes) throws ParseException {
+        // transfer protocol
+        this.transferProtocol = transferProtocol;
         // header
         byte[] header = Arrays.copyOfRange(bytes, 0, 11);
         this.header = new Header(Header.REQUEST, header);
@@ -71,6 +71,10 @@ public class Request {
 
     public Header getHeader() {
         return header;
+    }
+
+    public TransferProtocol getTransferProtocol() {
+        return transferProtocol;
     }
 
     public byte[] getBytes() throws IOException {

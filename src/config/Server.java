@@ -11,19 +11,29 @@ package config;
  */
 public class Server {
 
-    private int Port;
+    private int signallingPort;
+    private int mediaPortFrom;
+    private int mediaPortTo;
     private String HostAddress;
 
     public Server() {
     }
 
     public Server(int Port, String HostAddress) {
-        this.Port = Port;
+        this.signallingPort = Port;
         this.HostAddress = HostAddress;
     }
 
-    public int getPort() {
-        return Port;
+    public int getSignallingPort() {
+        return signallingPort;
+    }
+
+    public int getMediaPortFrom() {
+        return mediaPortFrom;
+    }
+
+    public int getMediaPortTo() {
+        return mediaPortTo;
     }
 
     public String getHostAddress() {
@@ -34,8 +44,16 @@ public class Server {
         this.HostAddress = HostAddress;
     }
 
-    public void setPort(int Port) {
-        this.Port = Port;
+    public void setSignallingPort(int Port) {
+        this.signallingPort = Port;
+    }
+
+    public void setMediaPortFrom(int mediaPortFrom) {
+        this.mediaPortFrom = mediaPortFrom;
+    }
+
+    public void setMediaPortTo(int mediaPortTo) {
+        this.mediaPortTo = mediaPortTo;
     }
 
 }

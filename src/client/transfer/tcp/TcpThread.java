@@ -3,8 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package client;
+package client.transfer.tcp;
 
+import client.DataInput;
+import client.transfer.TransferProtocol;
 import com.google.common.primitives.Bytes;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -20,7 +22,7 @@ import java.util.Vector;
  *
  * @author armin
  */
-public class SocketThread extends Thread {
+public class TcpThread extends Thread {
 
     // packet header, footer
     private final byte[] packetHeader = {(byte) 0x00, (byte) 0x00, (byte) 0x00};
@@ -34,22 +36,21 @@ public class SocketThread extends Thread {
     private final DataInputStream dataInputStream;
     private final DataOutputStream dataOutputStream;
     //
-    private Vector<byte[]> bytesDataInputStream;
+    private Vector<DataInput> dataInputs;
     //
     private boolean Running;
 
-    public SocketThread(String ServerIP, int ServerPort, String name) throws Exception {
-        this(ServerIP, ServerPort, 8 * 1024, name);
+    public TcpThread(String ServerIP, int ServerPort, Vector<DataInput> dataInputs, String name) throws Exception {
+        this(ServerIP, ServerPort, 8 * 1024, dataInputs, name);
     }
 
-    public SocketThread(String ServerIP, int ServerPort, int bytesSize, String name) throws Exception {
-        super(name + "->" + "SocketThread");
+    public TcpThread(String ServerIP, int ServerPort, int bytesSize, Vector<DataInput> dataInputs, String name) throws Exception {
+        super(name + "->" + "TcpThread");
         //
         this.ServerInetAddress = InetAddress.getByName(ServerIP);
         this.ServerPort = ServerPort;
         this.bytesSize = bytesSize;
-        //
-        this.bytesDataInputStream = new Vector<>();
+        this.dataInputs = dataInputs;
         //
         this.socket = new Socket(this.ServerInetAddress, this.ServerPort);
         //
@@ -58,18 +59,17 @@ public class SocketThread extends Thread {
 
     }
 
-    public SocketThread(Socket socket, String name) throws Exception {
-        this(socket, 8 * 1024, name);
+    public TcpThread(Socket socket, Vector<DataInput> dataInputs, String name) throws Exception {
+        this(socket, 8 * 1024, dataInputs, name);
     }
 
-    public SocketThread(Socket socket, int bytesSize, String name) throws Exception {
-        super(name + "->" + "SocketThread");
+    public TcpThread(Socket socket, int bytesSize, Vector<DataInput> dataInputs, String name) throws Exception {
+        super(name + "->" + "TcpThread");
         //
         this.ServerInetAddress = socket.getInetAddress();
         this.ServerPort = socket.getPort();
         this.bytesSize = bytesSize;
-        //
-        this.bytesDataInputStream = new Vector<>();
+        this.dataInputs = dataInputs;
         //
         this.socket = socket;
         //
@@ -95,7 +95,8 @@ public class SocketThread extends Thread {
                                 index_header + packetHeader.length,
                                 index_footer
                         );
-                        bytesDataInputStream.add(packet);
+                        DataInput dataInput = new DataInput(TransferProtocol.TCP, packet);
+                        dataInputs.add(dataInput);
                         // get remaining of bytes
                         remaining = Arrays.copyOfRange(
                                 remaining,
@@ -160,16 +161,11 @@ public class SocketThread extends Thread {
         this.Running = Running;
     }
 
-    protected synchronized void dataOutputStreamWrite(byte[] bytes) throws IOException {
+    public synchronized void dataOutputStreamWrite(byte[] bytes) throws IOException {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(100);
         byteArrayOutputStream.write(packetHeader);
         byteArrayOutputStream.write(bytes);
         byteArrayOutputStream.write(packetFooter);
         dataOutputStream.write(byteArrayOutputStream.toByteArray());
     }
-
-    protected Vector<byte[]> getBytesDataInputStream() {
-        return bytesDataInputStream;
-    }
-
 }

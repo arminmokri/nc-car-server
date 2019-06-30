@@ -7,7 +7,6 @@ package client.response;
 
 import client.ClientThread;
 import client.request.Request;
-import java.io.IOException;
 
 /**
  *
@@ -28,10 +27,10 @@ public class ResponseThread extends Thread {
     @Override
     public void run() {
         try {
-            Response response = new Response(request, clientThread);
-            clientThread.dataOutputStreamWrite(response.getBytes());
-        } catch (IOException iOException) {
-            iOException.printStackTrace();
+            Response response = new Response(request.getTransferProtocol(), request, clientThread);
+            clientThread.dataOutputWrite(response.getTransferProtocol(), response.getBytes());
+        } catch (Exception exception) {
+            exception.printStackTrace();
         }
         super.stop();
     }

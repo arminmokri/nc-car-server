@@ -82,7 +82,9 @@ public class Config {
 
         // set server
         this.Server = new Server();
-        this.Server.setPort(iNIConfiguration.getSection("server").getInt("port"));
+        this.Server.setSignallingPort(iNIConfiguration.getSection("server").getInt("signalling_port"));
+        this.Server.setMediaPortFrom(iNIConfiguration.getSection("server").getInt("media_port_from"));
+        this.Server.setMediaPortTo(iNIConfiguration.getSection("server").getInt("media_port_to"));
         this.Server.setHostAddress(iNIConfiguration.getSection("server").getString("host"));
 
         // set cars

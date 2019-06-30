@@ -5,6 +5,8 @@
  */
 package client.parameters;
 
+import java.util.Base64;
+
 /**
  *
  * @author armin
@@ -58,12 +60,21 @@ public class Parameter {
         this.value = value;
     }
 
+    public Parameter(String key, byte[] bytes) {
+        this.key = key;
+        this.value = Base64.getEncoder().encodeToString(bytes);
+    }
+
     public String getValue() {
         return value;
     }
 
     public String getKey() {
         return key;
+    }
+
+    public byte[] getKeyDecode() {
+        return Base64.getDecoder().decode(key);
     }
 
 }

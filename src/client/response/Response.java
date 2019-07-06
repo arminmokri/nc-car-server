@@ -32,11 +32,12 @@ public class Response {
     //
     private ClientThread clientThread;
 
-    public Response(TransferProtocol transferProtocol, Request request, ClientThread clientThread) {
-        this(transferProtocol, request.getHeader(), request.getRequestParameters(), clientThread);
+    public Response(Request request, ClientThread clientThread) {
+        this(request.getTransferProtocol(), request.getHeader(), request.getRequestParameters(), clientThread);
     }
 
     public Response(TransferProtocol transferProtocol, Header header, Parameters requestParameters, ClientThread clientThread) {
+        this.transferProtocol = transferProtocol;
         this.header = header;
         this.header.setType(Header.RESPONSE);
         this.requestParameters = requestParameters;

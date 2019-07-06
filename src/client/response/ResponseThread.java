@@ -27,7 +27,7 @@ public class ResponseThread extends Thread {
     @Override
     public void run() {
         try {
-            Response response = new Response(request.getTransferProtocol(), request, clientThread);
+            Response response = new Response(request, clientThread);
             clientThread.Response(response);
         } catch (Exception exception) {
             exception.printStackTrace();

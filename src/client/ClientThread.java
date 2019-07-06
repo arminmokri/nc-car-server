@@ -199,12 +199,21 @@ public class ClientThread extends Thread {
     public void Request(Request request) {
         try {
             dataOutputWrite(request.getTransferProtocol(), request.getBytes());
+            requests.add(request);
         } catch (Exception exception) {
             exception.printStackTrace();
         }
     }
 
-    public void dataOutputWrite(TransferProtocol transferProtocol, byte[] bytes) throws IOException, Exception {
+    public void Response(Response response) {
+        try {
+            dataOutputWrite(response.getTransferProtocol(), response.getBytes());
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
+    }
+
+    private void dataOutputWrite(TransferProtocol transferProtocol, byte[] bytes) throws IOException, Exception {
         if (transferProtocol.equals(TransferProtocol.TCP)) {
             tcpThread.dataOutputStreamWrite(bytes);
         } else if (transferProtocol.equals(TransferProtocol.UDP)) {

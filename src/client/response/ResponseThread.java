@@ -28,7 +28,7 @@ public class ResponseThread extends Thread {
     public void run() {
         try {
             Response response = new Response(request.getTransferProtocol(), request, clientThread);
-            clientThread.dataOutputWrite(response.getTransferProtocol(), response.getBytes());
+            clientThread.Response(response);
         } catch (Exception exception) {
             exception.printStackTrace();
         }
